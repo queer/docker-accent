@@ -24,6 +24,7 @@ RUN \
   apt-get update && \
   apt-get install -y gcc g++ make nodejs && \
   mix deps.get && \
+  env MIX_ENV=prod mix deps.get
   npm --prefix webapp install
 
 # Redirect log to stdout

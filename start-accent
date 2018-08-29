@@ -2,7 +2,7 @@
 
 cd /app
 
-nohup mix phx.server > /var/log/accent.log &
+nohup env MIX_ENV=prod mix phx.server > /var/log/accent.log &
 nohup npm --prefix webapp run start > /var/log/accent.log &
 
 tail -f /dev/null
