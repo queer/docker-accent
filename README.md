@@ -1,46 +1,31 @@
 # docker-accent
-There are instructions for deploying [accent](https://github.com/mirego/accent) on either a local OSX machine or heroku but there is no official docker setup. So here's a docker image for running Accent.
 
-#### Environment
-Check out the [official README](https://github.com/mirego/accent#environment-variables) for a list of environment variables used by Accent. The docker-compose example below shows an example configuration. I recommend you at least provide it
-* `MIX_ENV`
-* `PORT`
-* `WEBAPP_PORT`
-* `DATABASE_URL`
+Does what it sounds like - runs your [Accent](https://www.accent.reviews/) instance in Docker.
 
-Don't forget you will have to manually run `mix ecto.setup` when running this container for the first time!
+NOTE: I'm not 100% how well this works. Use at your own risk!
 
-#### Docker Compose
-An example of how this repository can be used as part of a docker-compose setup
+This image is hosted on Docker Hub: [`queer/accent:master`](https://hub.docker.com/r/queer/accent/)
 
+## Usage
+
+```Bash
+# Start postgres
+docker run -dit -v pgdata:/var/lib/postgresql/data -e POSTGRES_USER=postgres \
+    -e POSTGRES_PASSWORD=password postgresql:alpine
+
+# Run migrations
+docker run --rm -it --link postgres -e MIX_ENV=prod -e PORT=4000 \
+    -e WEBAPP_PORT=4200 -e DATABASE_URL="postgres://postgres:password@postgres/accent" \
+    queer/accent:master mix ecto.setup
+
+# Run Accent!
+# This binds to ports on localhost so that you can set up eg. nginx to reverse-proxy to it, to make
+# using it with a "real" domain behind eg. Cloudflare easier
+docker run -dit --name=accent --link postgres -p 127.0.0.1:4200:4200 -p 127.0.0.1:4000:4000 \
+    -e MIX_ENV=prod -e PORT=4000 -e WEBAPP_PORT=4200 \
+    -e DATABASE_URL="postgres://postgres:password@postgres/accent" \
+    -e GOOGLE_API_CLIENT_ID="<your token>" -e CANONICAL_HOST="hostname, but without https:// in front" \
+    -e API_HOST="https://your-api-host.example.com" -e API_WS_HOST="wss://your-api-host.example.com" \
+    -e RESTRICTED_DOMAIN="Put your domain here to prevent people without an email on that domain from creating projects" \
+    queer/accent:master
 ```
-version: "3.2"
-
-services: 
-  accent:
-    build: ./accent
-    links:
-      - postgres
-    ports:
-      - 4000:4000
-      - 4200:4200
-    environment:
-      MIX_ENV: dev
-      PORT: 4000
-      WEBAPP_PORT: 4200
-      DATABASE_URL: postgres://postgres:password@postgres/accent_development
-
-  postgres:
-    image: postgres:10.4
-    restart: always
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-    volumes:
-      - postgresdata:/var/lib/postgresql/data
-
-volumes:
-  postgresdata:
-    driver: local
-
-``` 
