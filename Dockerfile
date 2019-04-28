@@ -1,6 +1,4 @@
-FROM elixir:1.6.0
-MAINTAINER Sven Gehring <sgehring@kochag.ch>
-
+FROM elixir:latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
